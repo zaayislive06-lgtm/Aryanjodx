@@ -863,7 +863,7 @@ class YouTube(commands.Cog):
             role,
         )
 
-    @yt.command(
+    embed = discord.Embed(
         name="subscribe",
         description="Subscribe to YouTube live notifications",
     )
