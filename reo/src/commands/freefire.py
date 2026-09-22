@@ -52,7 +52,7 @@ class FreeFire(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.api_base = "https://enzo-info-api.vercel.app"
+        self.api_base = "https://client.ind.freefiremobile.com/GetPlayerPersonalShow"
         self.config_file = "guild_configs.json"
 
     def load_config(self):
