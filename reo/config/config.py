@@ -8,7 +8,8 @@ class BotConfigClass:
     TOKEN = os.getenv("TOKEN", "")
     PREFIX = os.getenv("PREFIX", "?")
     SHARD_COUNT = int(os.getenv("SHARD_COUNT", 2))
-    NAME = os.getenv("BOT_NAME", "Reo")
+    NAME = os.getenv("BOT_NAME", "Kuki")
+    YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
     DASHBOARD_ENABLED = os.getenv("DASHBOARD_ENABLED", "True").lower() == "true"
     WEB_HOST = os.getenv("WEB_HOST", "0.0.0.0")
     WEB_PORT = int(os.getenv("WEB_PORT", 25572))
