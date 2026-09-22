@@ -34,6 +34,7 @@ async def load_storage():
         storage.tickets.create_table(),
         storage.shop.create_table(),
         storage.music.create_table(),
+        storage.youtube.create_table(),
     ]
     await asyncio.gather(*tasks)
     logger.database("Database collections loaded")
