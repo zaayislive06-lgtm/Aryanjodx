@@ -848,16 +848,7 @@ class YouTube(commands.Cog):
         )
         
 
-    @yt.command(
-        name="subscribe",
-        description="Subscribe to YouTube live notifications",
-    )
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.describe(
-        channel="YouTube channel",
-        notification_channel="Discord notification channel",
-        role="Optional role to ping",
-    )
+    
     async def yt_subscribe(
         self,
         interaction,
