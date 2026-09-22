@@ -841,29 +841,14 @@ class YouTube(commands.Cog):
         color=discord.Color.green(),
     )
 
-    @youtube.command(
-                    embed = discord.Embed(
-            title="📺 YouTube Live Notifications",
-            description=(
-                f"✅ **{channel_name}** successfully **{action}**.\n\n"
-                f"📢 Channel: {notification_channel.mention}\n"
-                f"👑 Role: {role_text}"
-            ),
-            color=discord.Color.green(),
-        )
 
         await interaction.followup.send(
             embed=embed,
             ephemeral=True,
         )
-        await self._subscribe(
-            interaction,
-            channel,
-            notification_channel,
-            role,
-        )
+        
 
-    embed = discord.Embed(
+    @yt.command(
         name="subscribe",
         description="Subscribe to YouTube live notifications",
     )
