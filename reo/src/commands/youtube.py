@@ -841,11 +841,6 @@ class YouTube(commands.Cog):
         color=discord.Color.green(),
     )
 
-    await interaction.followup.send(
-        embed=embed,
-        ephemeral=True,
-    )
-
     @youtube.command(
         name="subscribe",
         description="Subscribe to YouTube live notifications",
