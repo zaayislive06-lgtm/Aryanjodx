@@ -842,22 +842,20 @@ class YouTube(commands.Cog):
     )
 
     @youtube.command(
-        name="subscribe",
-        description="Subscribe to YouTube live notifications",
-    )
-    @app_commands.checks.has_permissions(manage_guild=True)
-    @app_commands.describe(
-        channel="YouTube channel",
-        notification_channel="Discord notification channel",
-        role="Optional role to ping",
-    )
-    async def youtube_subscribe(
-        self,
-        interaction,
-        channel: str,
-        notification_channel: discord.TextChannel,
-        role: discord.Role = None,
-    ):
+                    embed = discord.Embed(
+            title="📺 YouTube Live Notifications",
+            description=(
+                f"✅ **{channel_name}** successfully **{action}**.\n\n"
+                f"📢 Channel: {notification_channel.mention}\n"
+                f"👑 Role: {role_text}"
+            ),
+            color=discord.Color.green(),
+        )
+
+        await interaction.followup.send(
+            embed=embed,
+            ephemeral=True,
+        )
         await self._subscribe(
             interaction,
             channel,
