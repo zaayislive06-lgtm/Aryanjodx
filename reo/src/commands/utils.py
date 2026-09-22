@@ -269,7 +269,7 @@ class Utils(commands.Cog):
             await ctx.send("An Error Occured While Sending The Voting Link")
 
     @commands.hybrid_command(
-        name="stats",
+        name="botstats",
         with_app_command=True,
         help="Get The Bot's Stats",
         aliases=["statistics", "status"],
