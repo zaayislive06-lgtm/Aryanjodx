@@ -26,6 +26,7 @@ from .commands.utils import Utils
 from .commands.voice import Voice
 from .commands.welcomer import Welcomer
 from .commands.youtube import YouTube
+from .commands.freefire import FreeFire
 from .events.message import message
 from .events.on_command import on_command
 from .events.on_command_error import on_command_error
@@ -62,6 +63,7 @@ async def setup(bot: AutoShardedBot):
         Ticket(bot=bot),
         Welcomer(bot=bot),
         YouTube(bot=bot),
+        FreeFire(bot=bot),
         Music(bot=bot),
         Giveaway(bot=bot),
         Help(bot=bot),
