@@ -2101,6 +2101,7 @@ class message(commands.Cog):
         except:
 
             pass
+            await self.bot.process_commands(message)
 
     async def music_channel_module(self, message: discord.Message):
 
