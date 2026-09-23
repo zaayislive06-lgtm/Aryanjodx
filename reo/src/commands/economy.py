@@ -410,7 +410,19 @@ class Economy(commands.Cog):
     # =========================
 
     @commands.command(name="gamble")
-    async def gamble(self, ctx, amount: int):
+        if amount.lower() == "all":
+        user = await self.get_user(ctx.guild.id, ctx.author.id)
+        amount = user["wallet"]
+
+        if amount <= 0:
+            return await ctx.send("❌ You don't have enough money.")
+    else:
+        try:
+            amount = int(amount)
+        except ValueError:
+            return await ctx.send(
+                "❌ Enter a valid amount or `all`."
+            )
 
         if amount <= 0:
             return await ctx.send("❌ Invalid amount.")
