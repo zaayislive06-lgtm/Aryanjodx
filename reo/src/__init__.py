@@ -61,6 +61,7 @@ async def setup(bot: AutoShardedBot):
         Security(bot=bot),
         Automod(bot=bot),
         Moderation(bot=bot),
+        Economy(bot=bot),
         Ticket(bot=bot),
         Welcomer(bot=bot),
         YouTube(bot=bot),
