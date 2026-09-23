@@ -699,6 +699,31 @@ class Economy(commands.Cog):
             f"👑 Set {member.mention}'s balance to "
             f"**{self.money(amount)}**."
         )
+    @commands.command(name="clearbank")
+    @commands.is_owner()
+    async def clearbank(
+        self,
+        ctx,
+        member: discord.Member
+    ):
+        collection = await get_collection("economy")
+
+        await collection.update_one(
+            {
+                "guild_id": ctx.guild.id,
+                "user_id": member.id
+            },
+            {
+                "$set": {"bank": 0}
+            },
+            upsert=True
+        )
+
+        await ctx.send(
+            f"🏦 Cleared bank balance of "
+            f"{member.mention}.\n"
+            f"💰 Bank: **0**"
+        )
 
 
 async def setup(bot):
