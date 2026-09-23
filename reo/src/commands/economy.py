@@ -724,7 +724,308 @@ class Economy(commands.Cog):
             f"{member.mention}.\n"
             f"💰 Bank: **0**"
         )
+# =========================
+# DYNAMIC SHOP SYSTEM
+# =========================
 
+@commands.command(name="shop")
+async def shop(self, ctx):
+    collection = await get_collection("shop")
+
+    items = await collection.find({
+        "guild_id": ctx.guild.id
+    }).to_list(length=100)
+
+    if not items:
+        return await ctx.send(
+            "🛒 **Shop is empty!**\n"
+            "An admin can add items using `!shopadd`."
+        )
+
+    lines = []
+
+    for item in items:
+        lines.append(
+            f"**{item['name']}**\n"
+            f"🆔 `{item['item_id']}`\n"
+            f"💰 **{self.money(item['price'])}**"
+        )
+
+    embed = discord.Embed(
+        title="🛒 Economy Shop",
+        description="\n\n".join(lines),
+        color=discord.Color.gold()
+    )
+
+    embed.set_footer(
+        text="Use !buy <item_id> to purchase"
+    )
+
+    await ctx.send(embed=embed)
+
+
+# =========================
+# ADD SHOP ITEM
+# =========================
+
+@commands.command(name="shopadd")
+@commands.is_owner()
+async def shopadd(
+    self,
+    ctx,
+    item_id: str,
+    price: int,
+    *,
+    name: str
+):
+    if price <= 0:
+        return await ctx.send(
+            "❌ Price must be greater than 0."
+        )
+
+    item_id = item_id.lower()
+
+    if not item_id.replace("_", "").isalnum():
+        return await ctx.send(
+            "❌ Item ID can only contain letters, numbers and `_`."
+        )
+
+    collection = await get_collection("shop")
+
+    existing = await collection.find_one({
+        "guild_id": ctx.guild.id,
+        "item_id": item_id
+    })
+
+    if existing:
+        return await ctx.send(
+            f"❌ Item `{item_id}` already exists."
+        )
+
+    await collection.insert_one({
+        "guild_id": ctx.guild.id,
+        "item_id": item_id,
+        "name": name,
+        "price": price
+    })
+
+    await ctx.send(
+        f"✅ **Shop item added!**\n\n"
+        f"📦 Item: **{name}**\n"
+        f"🆔 ID: `{item_id}`\n"
+        f"💰 Price: **{self.money(price)}**"
+    )
+
+
+# =========================
+# REMOVE SHOP ITEM
+# =========================
+
+@commands.command(name="shopremove")
+@commands.is_owner()
+async def shopremove(self, ctx, item_id: str):
+
+    item_id = item_id.lower()
+
+    collection = await get_collection("shop")
+
+    result = await collection.delete_one({
+        "guild_id": ctx.guild.id,
+        "item_id": item_id
+    })
+
+    if result.deleted_count == 0:
+        return await ctx.send(
+            f"❌ Item `{item_id}` was not found."
+        )
+
+    await ctx.send(
+        f"🗑️ Shop item `{item_id}` has been removed."
+    )
+
+
+# =========================
+# EDIT SHOP ITEM
+# =========================
+
+@commands.command(name="shopedit")
+@commands.is_owner()
+async def shopedit(
+    self,
+    ctx,
+    item_id: str,
+    price: int = None,
+    *,
+    name: str = None
+):
+
+    if price is not None and price <= 0:
+        return await ctx.send(
+            "❌ Price must be greater than 0."
+        )
+
+    item_id = item_id.lower()
+
+    collection = await get_collection("shop")
+
+    item = await collection.find_one({
+        "guild_id": ctx.guild.id,
+        "item_id": item_id
+    })
+
+    if not item:
+        return await ctx.send(
+            f"❌ Item `{item_id}` was not found."
+        )
+
+    update = {}
+
+    if price is not None:
+        update["price"] = price
+
+    if name is not None:
+        update["name"] = name
+
+    if not update:
+        return await ctx.send(
+            "❌ Provide a new price or name."
+        )
+
+    await collection.update_one(
+        {
+            "guild_id": ctx.guild.id,
+            "item_id": item_id
+        },
+        {
+            "$set": update
+        }
+    )
+
+    await ctx.send(
+        f"✅ Shop item `{item_id}` updated successfully."
+    )
+
+
+# =========================
+# BUY ITEM
+# =========================
+
+@commands.command(name="buy")
+async def buy(self, ctx, item_id: str):
+
+    item_id = item_id.lower()
+
+    shop_collection = await get_collection("shop")
+    economy_collection = await get_collection("economy")
+
+    item = await shop_collection.find_one({
+        "guild_id": ctx.guild.id,
+        "item_id": item_id
+    })
+
+    if not item:
+        return await ctx.send(
+            f"❌ Shop item `{item_id}` was not found.\n"
+            f"Use `!shop` to see available items."
+        )
+
+    user = await economy_collection.find_one({
+        "guild_id": ctx.guild.id,
+        "user_id": ctx.author.id
+    })
+
+    wallet = user.get("wallet", 0) if user else 0
+    price = item["price"]
+
+    if wallet < price:
+        return await ctx.send(
+            f"❌ You don't have enough money.\n\n"
+            f"💰 Price: **{self.money(price)}**\n"
+            f"💵 Wallet: **{self.money(wallet)}**"
+        )
+
+    await economy_collection.update_one(
+        {
+            "guild_id": ctx.guild.id,
+            "user_id": ctx.author.id
+        },
+        {
+            "$inc": {
+                "wallet": -price,
+                f"inventory.{item_id}": 1
+            }
+        },
+        upsert=True
+    )
+
+    await ctx.send(
+        f"✅ **Purchase successful!**\n\n"
+        f"📦 Item: **{item['name']}**\n"
+        f"💰 Paid: **{self.money(price)}**"
+    )
+
+
+# =========================
+# INVENTORY
+# =========================
+
+@commands.command(name="inventory", aliases=["inv"])
+async def inventory(self, ctx):
+
+    collection = await get_collection("economy")
+
+    user = await collection.find_one({
+        "guild_id": ctx.guild.id,
+        "user_id": ctx.author.id
+    })
+
+    if not user:
+        return await ctx.send(
+            "🎒 Your inventory is empty."
+        )
+
+    inventory = user.get("inventory", {})
+
+    if not inventory:
+        return await ctx.send(
+            "🎒 Your inventory is empty."
+        )
+
+    shop_collection = await get_collection("shop")
+
+    lines = []
+
+    for item_id, quantity in inventory.items():
+
+        if quantity <= 0:
+            continue
+
+        item = await shop_collection.find_one({
+            "guild_id": ctx.guild.id,
+            "item_id": item_id
+        })
+
+        if item:
+            lines.append(
+                f"{item['name']} × **{quantity}**"
+            )
+        else:
+            lines.append(
+                f"`{item_id}` × **{quantity}**"
+            )
+
+    if not lines:
+        return await ctx.send(
+            "🎒 Your inventory is empty."
+        )
+
+    embed = discord.Embed(
+        title=f"🎒 {ctx.author.display_name}'s Inventory",
+        description="\n".join(lines),
+        color=discord.Color.blue()
+    )
+
+    await ctx.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(Economy(bot))
