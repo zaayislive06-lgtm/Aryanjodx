@@ -410,6 +410,7 @@ class Economy(commands.Cog):
     # =========================
 
     @commands.command(name="gamble")
+    async def gamble(self, ctx, amount: str):
         if amount.lower() == "all":
         user = await self.get_user(ctx.guild.id, ctx.author.id)
         amount = user["wallet"]
