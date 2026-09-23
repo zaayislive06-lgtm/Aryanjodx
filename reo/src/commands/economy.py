@@ -769,7 +769,7 @@ async def shop(self, ctx):
 # =========================
 
 @commands.command(name="shopadd")
-@commands.is_owner()
+@commands.check(lambda ctx: ctx.author.id == 1540070261804634282)
 async def shopadd(
     self,
     ctx,
@@ -822,7 +822,7 @@ async def shopadd(
 # =========================
 
 @commands.command(name="shopremove")
-@commands.is_owner()
+@commands.check(lambda ctx: ctx.author.id == 1540070261804634282)
 async def shopremove(self, ctx, item_id: str):
 
     item_id = item_id.lower()
@@ -849,7 +849,7 @@ async def shopremove(self, ctx, item_id: str):
 # =========================
 
 @commands.command(name="shopedit")
-@commands.is_owner()
+@commands.check(lambda ctx: ctx.author.id == 1540070261804634282)
 async def shopedit(
     self,
     ctx,
