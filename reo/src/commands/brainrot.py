@@ -277,8 +277,8 @@ class Brainrot(commands.Cog):
     # --------------------------------------------------------
 
     def is_owner(self, user_id: int) -> bool:
-    OWNER_ID = 1540070261804634282  # YAHAN APNI DISCORD ID DALO
-    return int(user_id) == OWNER_ID
+      OWNER_IDS = {1540070261804634282}
+      return user_id in OWNER_IDS
 
     async def settings(self, guild_id):
         row = await self.db.fetchone(
