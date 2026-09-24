@@ -405,25 +405,6 @@ class Music(commands.Cog):
                     str(ctx.guild.id), {}
                 ).get("subscription", "free")
 
-                if not users_no_prefix_subscription and guilds_subscription == "free":
-
-                    if is_link(search):
-
-                        return await ctx.reply(
-                            embed=discord.Embed(
-                                description="You can't play music using links in the free subscription.",
-                                color=color.red,
-                            ),
-                            view=discord.ui.View().add_item(
-                                discord.ui.Button(
-                                    label="Upgrade Subscription",
-                                    style=discord.ButtonStyle.url,
-                                    url=self.bot.urls.SUPPORT_SERVER,
-                                    emoji=self.bot.emoji.SUPPORT,
-                                )
-                            ),
-                        )
-
                 # Use the new search methood correctly
 
                 result = await wavelink.Playable.search(search)
