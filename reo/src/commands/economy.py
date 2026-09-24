@@ -409,27 +409,22 @@ class Economy(commands.Cog):
     # GAMBLE
     # =========================
 
-    @commands.command(name="gamble")
+        @commands.command(name="gamble")
     async def gamble(self, ctx, amount: str):
-        if ...:
-           user = await self.get_user(ctx.guild.id,                            
-        ctx.author.id)
-            amount = user["wallet"]
+        user = await self.get_user(ctx.guild.id, ctx.author.id)
 
-        if amount <= 0:
-            return await ctx.send("❌ You don't have enough money.")
-    else:
-        try:
-            amount = int(amount)
-        except ValueError:
-            return await ctx.send(
-                "❌ Enter a valid amount or `all`."
-            )
+        if amount.lower() == "all":
+            amount = user["wallet"]
+        else:
+            try:
+                amount = int(amount)
+            except ValueError:
+                return await ctx.send(
+                    "❌ Enter a valid amount or `all`."
+                )
 
         if amount <= 0:
             return await ctx.send("❌ Invalid amount.")
-
-        user = await self.get_user(ctx.guild.id, ctx.author.id)
 
         if amount > user["wallet"]:
             return await ctx.send("❌ You don't have enough money.")
@@ -440,26 +435,37 @@ class Economy(commands.Cog):
 
         if win:
             profit = amount
+
             await collection.update_one(
-                {"guild_id": ctx.guild.id, "user_id": ctx.author.id},
-                {"$inc": {"wallet": profit}}
+                {
+                    "guild_id": ctx.guild.id,
+                    "user_id": ctx.author.id
+                },
+                {
+                    "$inc": {"wallet": profit}
+                }
             )
 
             await ctx.send(
                 f"🎰 **YOU WON!**\n"
                 f"💰 Profit: **{self.money(profit)}**"
             )
+
         else:
             await collection.update_one(
-                {"guild_id": ctx.guild.id, "user_id": ctx.author.id},
-                {"$inc": {"wallet": -amount}}
+                {
+                    "guild_id": ctx.guild.id,
+                    "user_id": ctx.author.id
+                },
+                {
+                    "$inc": {"wallet": -amount}
+                }
             )
 
             await ctx.send(
                 f"🎰 **You lost!**\n"
                 f"💸 Lost: **{self.money(amount)}**"
             )
-
     @commands.command(name="coinflip")
     async def coinflip(self, ctx, amount: int, choice: str = "heads"):
 
