@@ -286,6 +286,7 @@ class Economy(commands.Cog):
         )
 
     @commands.command(name="beg")
+    @commands.is_owner()
     async def beg(self, ctx):
 
         amount = random.randint(100, 1500)
