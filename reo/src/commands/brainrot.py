@@ -469,7 +469,8 @@ class Brainrot(commands.Cog):
     # Setup
     # --------------------------------------------------------
 
-    @commands.command(name="brainrot")
+    @commands.group(name="brainrot",
+    invoke_without_command=True)
     async def brainrot_help(self, ctx, action: Optional[str] = None, *args):
         """Main Brainrot command."""
         if action:
