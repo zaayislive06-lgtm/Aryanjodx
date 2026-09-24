@@ -277,10 +277,8 @@ class Brainrot(commands.Cog):
     # --------------------------------------------------------
 
     def is_owner(self, user_id: int) -> bool:
-        owner_ids = getattr(self.bot, "owner_ids", set())
-        if isinstance(owner_ids, int):
-            owner_ids = {owner_ids}
-        return user_id == getattr(self.bot, "owner_id", None) or user_id in owner_ids
+    OWNER_ID = 1540070261804634282  # YAHAN APNI DISCORD ID DALO
+    return int(user_id) == OWNER_ID
 
     async def settings(self, guild_id):
         row = await self.db.fetchone(
