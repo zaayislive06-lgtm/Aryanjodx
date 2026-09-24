@@ -412,8 +412,9 @@ class Economy(commands.Cog):
     @commands.command(name="gamble")
     async def gamble(self, ctx, amount: str):
         if ...:
-    user = await self.get_user(ctx.guild.id, ctx.author.id)
-        amount = user["wallet"]
+           user = await self.get_user(ctx.guild.id,                            
+        ctx.author.id)
+            amount = user["wallet"]
 
         if amount <= 0:
             return await ctx.send("❌ You don't have enough money.")
