@@ -409,7 +409,7 @@ class Economy(commands.Cog):
     # GAMBLE
     # =========================
 
-        @commands.command(name="gamble")
+    @commands.command(name="gamble")
     async def gamble(self, ctx, amount: str):
         user = await self.get_user(ctx.guild.id, ctx.author.id)
 
@@ -419,9 +419,7 @@ class Economy(commands.Cog):
             try:
                 amount = int(amount)
             except ValueError:
-                return await ctx.send(
-                    "❌ Enter a valid amount or `all`."
-                )
+                return await ctx.send("❌ Enter a valid amount or `all`.")
 
         if amount <= 0:
             return await ctx.send("❌ Invalid amount.")
@@ -430,7 +428,6 @@ class Economy(commands.Cog):
             return await ctx.send("❌ You don't have enough money.")
 
         win = random.random() < 0.45
-
         collection = await get_collection("economy")
 
         if win:
@@ -466,6 +463,7 @@ class Economy(commands.Cog):
                 f"🎰 **You lost!**\n"
                 f"💸 Lost: **{self.money(amount)}**"
             )
+
     @commands.command(name="coinflip")
     async def coinflip(self, ctx, amount: int, choice: str = "heads"):
 
