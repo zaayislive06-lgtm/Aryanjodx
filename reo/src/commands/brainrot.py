@@ -426,88 +426,246 @@ class Brainrot(commands.Cog):
     # Automatic spawning
     # --------------------------------------------------------
 
+    # --------------------------------------------------------
+    # Automatic spawning
+    # --------------------------------------------------------
+
     @tasks.loop(seconds=5)
     async def spawn_loop(self):
-        for guild in self.bot.guilds:
-            try:
-                s = await self.settings(guild.id)
-                if not s["enabled"]:
+      for guild in self.bot.guilds:
+         try:
+            s = await self.settings(guild.id)
+
+            # Auto spawn OFF / channel not configured
+            if not s["enabled"]:
+                continue
+
+            channel_id = s["summon_channel"]
+            if not channel_id:
+                print(f"[Brainrot] {guild.name}: summon channel not set")
+                continue
+
+            # Configured interval
+            interval = max(10, int(s["interval"] or 60))
+
+            now = time.time()
+            last = self._last_spawn.get(guild.id, 0)
+
+            if now - last < interval:
+                continue
+
+            # Don't replace an active Brainrot
+            active = self.active_spawns.get(guild.id)
+
+            if active:
+                if now < active.get("expires_at", 0):
                     continue
 
-                channel_id = s["summon_channel"]
-                if not channel_id:
-                    print(f"[Brainrot] {guild.name}: summon channel NOT SET")
-                    continue
+                self.active_spawns.pop(guild.id, None)
 
-                interval = max(10, int(s["interval"] or 60))
-                now = time.time()
-                last = self._last_spawn.get(guild.id, 0)
-                if now - last < interval:
-                    continue
+            # ------------------------------------------------
+            # GET BRAINROT
+            # Secret is NEVER automatic
+            # Mythic is approximately 1/1000
+            # ------------------------------------------------
 
-                active = self.active_spawns.get(guild.id)
-                if active:
-                    if now < active.get("expires_at", 0):
-                        continue
-                    self.active_spawns.pop(guild.id, None)
+            roll = random.randint(1, 1000)
 
-                definition = await self.get_brainrot_definition(guild.id)
-                spawn_id = random.randint(100000, 999999)
-
-                embed = discord.Embed(
-                    title="🧠 NEW BRAINROT!",
-                    description=(
-                        f"**{definition['name']}**\n\n"
-                        f"{EMOJI[definition['rarity']]} **Rarity:** {definition['rarity']}\n"
-                        f"💰 **Value:** `{definition['value']:,}`\n"
-                        f"💵 **Income:** `{definition['income']:,}/min`\n\n"
-                        "**First player to capture it gets it!**"
-                    ),
-                    color=discord.Color.random(),
+            if roll == 1:
+                # Mythic
+                rows = await self.db.fetchall(
+                    "SELECT name,rarity,value,income,image "
+                    "FROM custom_brainrots "
+                    "WHERE guild_id=? AND rarity='Mythic'",
+                    (guild.id,)
                 )
 
-                if definition.get("image"):
-                    embed.set_image(url=definition["image"])
+                if rows:
+                    r = random.choice(rows)
+                    definition = {
+                        "name": r["name"],
+                        "rarity": r["rarity"],
+                        "value": r["value"],
+                        "income": r["income"],
+                        "image": r["image"],
+                    }
+                else:
+                    mythics = [
+                        (n, r)
+                        for n, r in DEFAULT_BRAINROTS
+                        if r == "Mythic"
+                    ]
 
-                view = CaptureView(self, guild.id, spawn_id)
-                channel = guild.get_channel(channel_id)
-
-                if channel is None:
-                    try:
-                        channel = await self.bot.fetch_channel(channel_id)
-                    except Exception as exc:
+                    if not mythics:
                         print(
-                            f"[Brainrot] CHANNEL ERROR | {guild.name} | "
-                            f"{channel_id} | {type(exc).__name__}: {exc}"
+                            f"[Brainrot] {guild.name}: "
+                            "No Mythic Brainrot configured"
                         )
                         continue
 
+                    name, rarity = random.choice(mythics)
+                    data = RARITIES[rarity]
+
+                    definition = {
+                        "name": name,
+                        "rarity": rarity,
+                        "value": data["value"],
+                        "income": data["income"],
+                        "image": None,
+                    }
+
+            else:
+                # Normal automatic pool
+                automatic_rarities = [
+                    "Common",
+                    "Uncommon",
+                    "Rare",
+                    "Epic",
+                    "Legendary",
+                ]
+
+                weights = [
+                    60,   # Common
+                    25,   # Uncommon
+                    9,    # Rare
+                    4,    # Epic
+                    2,    # Legendary
+                ]
+
+                rarity = random.choices(
+                    automatic_rarities,
+                    weights=weights,
+                    k=1
+                )[0]
+
+                # Prefer custom Brainrots of selected rarity
+                rows = await self.db.fetchall(
+                    "SELECT name,rarity,value,income,image "
+                    "FROM custom_brainrots "
+                    "WHERE guild_id=? AND rarity=?",
+                    (guild.id, rarity)
+                )
+
+                if rows:
+                    r = random.choice(rows)
+
+                    definition = {
+                        "name": r["name"],
+                        "rarity": r["rarity"],
+                        "value": r["value"],
+                        "income": r["income"],
+                        "image": r["image"],
+                    }
+
+                else:
+                    pool = [
+                        (n, r)
+                        for n, r in DEFAULT_BRAINROTS
+                        if r == rarity
+                    ]
+
+                    if not pool:
+                        print(
+                            f"[Brainrot] {guild.name}: "
+                            f"No {rarity} Brainrot configured"
+                        )
+                        continue
+
+                    name, _ = random.choice(pool)
+                    data = RARITIES[rarity]
+
+                    definition = {
+                        "name": name,
+                        "rarity": rarity,
+                        "value": data["value"],
+                        "income": data["income"],
+                        "image": None,
+                    }
+
+            # ------------------------------------------------
+            # CREATE SPAWN
+            # ------------------------------------------------
+
+            spawn_id = random.randint(100000, 999999)
+
+            embed = discord.Embed(
+                title="🧠 NEW BRAINROT!",
+                description=(
+                    f"**{definition['name']}**\n\n"
+                    f"{EMOJI[definition['rarity']]} "
+                    f"**Rarity:** {definition['rarity']}\n"
+                    f"💰 **Value:** `{definition['value']:,}`\n"
+                    f"💵 **Income:** `{definition['income']:,}/min`\n\n"
+                    "**First player to capture it gets it!**"
+                ),
+                color=discord.Color.random(),
+            )
+
+            if definition.get("image"):
+                embed.set_image(url=definition["image"])
+
+            view = CaptureView(
+                self,
+                guild.id,
+                spawn_id
+            )
+
+            # Get channel
+            channel = guild.get_channel(channel_id)
+
+            if channel is None:
                 try:
-                    await channel.send(embed=embed, view=view)
+                    channel = await self.bot.fetch_channel(channel_id)
                 except Exception as exc:
                     print(
-                        f"[Brainrot] SEND ERROR | {guild.name} | "
-                        f"{type(exc).__name__}: {exc}"
+                        f"[Brainrot] Cannot find summon channel "
+                        f"{channel_id} in {guild.name}: {exc}"
                     )
                     continue
 
-                self.active_spawns[guild.id] = {
-                    "id": spawn_id,
-                    "definition": definition,
-                    "expires_at": time.time() + 55,
-                }
-                self._last_spawn[guild.id] = time.time()
+            # ------------------------------------------------
+            # SEND FIRST
+            # ------------------------------------------------
 
-                print(
-                    f"[Brainrot] AUTO SPAWNED | {definition['name']} | "
-                    f"{definition['rarity']} | {guild.name}"
+            try:
+                await channel.send(
+                    embed=embed,
+                    view=view
                 )
-
             except Exception as exc:
                 print(
-                    f"[Brainrot] AUTO SPAWN ERROR | {guild.name} | "
+                    f"[Brainrot] AUTO SPAWN SEND ERROR "
+                    f"in {guild.name}: "
                     f"{type(exc).__name__}: {exc}"
                 )
+                continue
+
+            # ------------------------------------------------
+            # ONLY AFTER SUCCESSFUL SEND
+            # ------------------------------------------------
+
+            self.active_spawns[guild.id] = {
+                "id": spawn_id,
+                "definition": definition,
+                "expires_at": time.time() + 55,
+            }
+
+            self._last_spawn[guild.id] = time.time()
+
+            print(
+                f"[Brainrot] AUTO SPAWNED "
+                f"{definition['name']} "
+                f"({definition['rarity']}) "
+                f"in {guild.name}"
+            )
+
+        except Exception as exc:
+            print(
+                f"[Brainrot] AUTO SPAWN ERROR "
+                f"in {guild.name}: "
+                f"{type(exc).__name__}: {exc}"
+            )
+    
 
     @spawn_loop.before_loop
     async def before_spawn_loop(self):
