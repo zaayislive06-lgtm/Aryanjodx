@@ -1208,7 +1208,9 @@ class Brainrot(commands.Cog):
 
         spawn_id = random.randint(100000, 999999)
         self.active_spawns[ctx.guild.id] = {
-            "id": spawn_id, "definition": definition
+         "id": spawn_id,
+         "definition": definition,
+         "expires_at": time.time() + 55,
         }
 
         embed = discord.Embed(
