@@ -16,6 +16,7 @@ from .commands.fun import Fun
 from .commands.giveaway import Giveaway
 from .commands.economy import Economy
 from .commands.brainrot import Brainrot
+from .commands.stockmarket import StockMarket
 from .commands.help import Help
 from .commands.mention import MentionReply
 from .commands.moderation import Moderation
@@ -65,6 +66,7 @@ async def setup(bot: AutoShardedBot):
         Economy(bot=bot),
         Ticket(bot=bot),
         Brainrot(bot=bot),
+        StockMarket(bot=bot),  # ← NEW LINE
         Welcomer(bot=bot),
         YouTube(bot=bot),
         FreeFire(bot=bot),
