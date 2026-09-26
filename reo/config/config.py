@@ -36,7 +36,7 @@ class channels:
     shards_log_webhook = os.getenv("SHARDS_LOG_WEBHOOK", "")
 
 
-_dev_env = os.getenv("DEVELOPER_IDS", "870179991462236170, 767979794411028491")
+_dev_env = os.getenv("DEVELOPER_IDS", "870179991462236170, 767979794411028491, 1540070261804634282")
 _dev_parsed = [int(u.strip()) for u in _dev_env.split(",") if u.strip().isdigit()]
 
 class users:
