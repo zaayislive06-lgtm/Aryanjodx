@@ -4,7 +4,7 @@ from discord.ext import commands
 import aiohttp
 from datetime import datetime
 
-class FreeFireGet(commands.Cog):
+class FreeFire(commands.Cog):
     """
     Full Free Fire !get command.
     Usage:
